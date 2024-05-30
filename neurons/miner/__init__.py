@@ -79,6 +79,6 @@ class Miner:
         bt.logging.debug("Starting the miner.")
 
         while True:
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
             self.metagraph_sync.log_info(self.uid)
             self.metagraph_sync.sync()
