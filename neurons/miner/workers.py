@@ -25,6 +25,7 @@ async def worker_routine(
     generate_url = urllib.parse.urljoin(endpoint, "/generate/")
 
     CURRENT_BLACKLIST_UIDS = [val_uid for val_uid in BLACKLIST_VALIDATORS]
+    bt.logging.info(f"Blacklisted {BLACKLIST_VALIDATORS}")
 
     for val_uid in CURRENT_BLACKLIST_UIDS:
         if time.time() - BLACKLIST_VALIDATORS[val_uid] >= 3600:
