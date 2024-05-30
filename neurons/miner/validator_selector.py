@@ -17,6 +17,7 @@ class ValidatorSelector:
         self.all_validators = set()
         self.all_validators.add(self._next_uid)
         self.blacklist = []
+        self.whitelist = [171, 125, 20, 225]
 
         # Temporary measure.
         # For test period organic traffic will go only through the subnet owner's validator.
@@ -55,8 +56,9 @@ class ValidatorSelector:
 
 
     def get_next_validator_to_query(self) -> int | None:
-        self.clear_blacklist()
+        # self.clear_blacklist()
 
+        bt.logging.info(f"Validator uids: {self.all_validators}")
         bt.logging.info(f"Blacklisted uids: {self.blacklist}")
         current_time = int(time.time())
         metagraph: bt.metagraph = self._metagraph_ref()
@@ -71,7 +73,8 @@ class ValidatorSelector:
                 metagraph.axons[self._next_uid].is_serving
                 and metagraph.S[self._next_uid] >= self._min_stake
                 and self._cooldowns.get(self._next_uid, 0) < current_time
-                and not self.check_blacklist(self._next_uid)
+                # and not self.check_blacklist(self._next_uid)
+                and self._next_uid in self.whitelist
             ):
                 bt.logging.debug(f"Querying task from [{self._next_uid}]. Stake: {metagraph.S[self._next_uid]}")
                 return self._next_uid
