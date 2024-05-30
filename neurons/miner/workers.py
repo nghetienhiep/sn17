@@ -16,13 +16,19 @@ from miner import ValidatorSelector
 
 NETWORK_DELAY_TIME_BUFFER = 60
 FAILED_VALIDATOR_DELAY = 300
-
+BLACKLIST_VALIDATORS = {}
 
 async def worker_routine(
     endpoint: str, wallet: bt.wallet, metagraph: bt.metagraph, validator_selector: ValidatorSelector
 ) -> None:
     bt.logging.info(f"Worker ({endpoint}) started")
     generate_url = urllib.parse.urljoin(endpoint, "/generate/")
+
+    CURRENT_BLACKLIST_UIDS = [val_uid for val_uid in BLACKLIST_VALIDATORS]
+
+    for val_uid in CURRENT_BLACKLIST_UIDS:
+        if time.time() - BLACKLIST_VALIDATORS[val_uid] >= 3600:
+            del BLACKLIST_VALIDATORS[val_uid]
 
     while True:
         await _complete_one_task(generate_url, wallet, metagraph, validator_selector)
@@ -31,7 +37,7 @@ async def worker_routine(
 async def _complete_one_task(
     generate_url: str, wallet: bt.wallet, metagraph: bt.metagraph, validator_selector: ValidatorSelector
 ) -> None:
-    validator_uid = validator_selector.get_next_validator_to_query()
+    validator_uid = validator_selector.get_next_validator_to_query(BLACKLIST_VALIDATORS.keys())
     if validator_uid is None:
         await asyncio.sleep(10.0)
         return
@@ -78,6 +84,7 @@ async def _complete_one_task(
             f"Failed to submit results to [{metagraph.hotkeys[validator_uid]}]. "
             f"Reason: {submit.dendrite.status_message}."
         )
+        BLACKLIST_VALIDATORS[validator_uid] = time.time()
         validator_selector.set_cooldown(validator_uid, int(time.time()) + FAILED_VALIDATOR_DELAY)
         return
 

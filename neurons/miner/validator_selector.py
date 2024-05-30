@@ -26,7 +26,7 @@ class ValidatorSelector:
         else:
             self._owner_uid = metagraph.hotkeys.index(self._owner_hotkey)
 
-    def get_next_validator_to_query(self) -> int | None:
+    def get_next_validator_to_query(self, blacklist_uids=[]) -> int | None:
         current_time = int(time.time())
         metagraph: bt.metagraph = self._metagraph_ref()
 
@@ -40,6 +40,7 @@ class ValidatorSelector:
                 metagraph.axons[self._next_uid].is_serving
                 and metagraph.S[self._next_uid] >= self._min_stake
                 and self._cooldowns.get(self._next_uid, 0) < current_time
+                and self._next_uid not in blacklist_uids
             ):
                 bt.logging.debug(f"Querying task from [{self._next_uid}]. Stake: {metagraph.S[self._next_uid]}")
                 return self._next_uid
