@@ -26,7 +26,11 @@ class ValidatorSelector:
         else:
             self._owner_uid = metagraph.hotkeys.index(self._owner_hotkey)
 
-    def get_next_validator_to_query(self, blacklist_uids=[]) -> int | None:
+    def get_next_validator_to_query(self, blacklist_uids=None) -> int | None:
+        if blacklist_uids is None:
+            blacklist_uids = []
+
+        bt.logging.info(f"Blacklisted uids: {blacklist_uids}")
         current_time = int(time.time())
         metagraph: bt.metagraph = self._metagraph_ref()
 

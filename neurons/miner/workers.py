@@ -24,13 +24,6 @@ async def worker_routine(
     bt.logging.info(f"Worker ({endpoint}) started")
     generate_url = urllib.parse.urljoin(endpoint, "/generate/")
 
-    CURRENT_BLACKLIST_UIDS = [val_uid for val_uid in BLACKLIST_VALIDATORS]
-    bt.logging.info(f"Blacklisted {BLACKLIST_VALIDATORS}")
-
-    for val_uid in CURRENT_BLACKLIST_UIDS:
-        if time.time() - BLACKLIST_VALIDATORS[val_uid] >= 3600:
-            del BLACKLIST_VALIDATORS[val_uid]
-
     while True:
         await _complete_one_task(generate_url, wallet, metagraph, validator_selector)
 
@@ -38,6 +31,12 @@ async def worker_routine(
 async def _complete_one_task(
     generate_url: str, wallet: bt.wallet, metagraph: bt.metagraph, validator_selector: ValidatorSelector
 ) -> None:
+    CURRENT_BLACKLIST_UIDS = [val_uid for val_uid in BLACKLIST_VALIDATORS]
+
+    for val_uid in CURRENT_BLACKLIST_UIDS:
+        if time.time() - BLACKLIST_VALIDATORS[val_uid] >= 3600:
+            del BLACKLIST_VALIDATORS[val_uid]
+
     validator_uid = validator_selector.get_next_validator_to_query(BLACKLIST_VALIDATORS.keys())
     if validator_uid is None:
         await asyncio.sleep(10.0)
