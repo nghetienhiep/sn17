@@ -69,6 +69,9 @@ class ValidatorSelector:
 
         start_uid = self._next_uid
         while True:
+            if metagraph.axons[self._next_uid].is_serving and metagraph.S[self._next_uid] >= self._min_stake:
+                self.all_validators.add(self._next_uid)
+
             if (
                 metagraph.axons[self._next_uid].is_serving
                 and metagraph.S[self._next_uid] >= self._min_stake
@@ -80,7 +83,7 @@ class ValidatorSelector:
                 return self._next_uid
 
             self._next_uid = 0 if self._next_uid + 1 == metagraph.n else self._next_uid + 1
-            self.all_validators.add(self._next_uid)
+
             if start_uid == self._next_uid:
                 bt.logging.info("No available validators to pull the task.")
                 return None
