@@ -41,10 +41,37 @@ CONDA_INTERPRETER_PATH=$(which python)
 cat <<EOF > generation.config.js
 module.exports = {
   apps : [{
-    name: 'generation',
+    name: 'generation_8093',
     script: 'serve.py',
     interpreter: '${CONDA_INTERPRETER_PATH}',
-    args: '--port 8093'
+    args: '--port 8093',
+    env: {
+      CUDA_VISIBLE_DEVICES: '0'
+    }
+  },{
+    name: 'generation_8094',
+    script: 'serve.py',
+    interpreter: '${CONDA_INTERPRETER_PATH}',
+    args: '--port 8094',
+    env: {
+      CUDA_VISIBLE_DEVICES: '1'
+    }
+  },{
+    name: 'generation_8095',
+    script: 'serve.py',
+    interpreter: '${CONDA_INTERPRETER_PATH}',
+    args: '--port 8095',
+    env: {
+      CUDA_VISIBLE_DEVICES: '2'
+    }
+  },{
+    name: 'generation_8096',
+    script: 'serve.py',
+    interpreter: '${CONDA_INTERPRETER_PATH}',
+    args: '--port 8096',
+    env: {
+      CUDA_VISIBLE_DEVICES: '3'
+    }
   }]
 };
 EOF
