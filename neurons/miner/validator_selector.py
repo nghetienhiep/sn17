@@ -60,6 +60,7 @@ class ValidatorSelector:
 
         bt.logging.info(f"Validator uids: {self.all_validators}")
         bt.logging.info(f"Blacklisted uids: {self.blacklist}")
+        bt.logging.info(f"Whitelist uids: {self.whitelist}")
         current_time = int(time.time())
         metagraph: bt.metagraph = self._metagraph_ref()
 
