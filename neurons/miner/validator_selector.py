@@ -14,6 +14,9 @@ class ValidatorSelector:
         self._min_stake = min_stake
         self._cooldowns: dict[int | None, int] = {}
         self._next_uid = random.randint(0, 256)  # noqa  # nosec
+        self.all_validators = set()
+        self.all_validators.add(self._next_uid)
+        self.blacklist = []
 
         # Temporary measure.
         # For test period organic traffic will go only through the subnet owner's validator.
@@ -26,11 +29,35 @@ class ValidatorSelector:
         else:
             self._owner_uid = metagraph.hotkeys.index(self._owner_hotkey)
 
-    def get_next_validator_to_query(self, blacklist_uids=None) -> int | None:
-        if blacklist_uids is None:
-            blacklist_uids = []
+    def set_blacklist(self, uid: int):
+        self.blacklist.append({
+            "uid": uid,
+            "time": time.time()
+        })
 
-        bt.logging.info(f"Blacklisted uids: {blacklist_uids}")
+    def clear_blacklist(self):
+        self.blacklist = [val for val in self.blacklist if val.get('time') is not None and time.time() - val.get('time') < 3600]
+        remaining_validators_number = len(self.all_validators) - len(self.blacklist)
+        if remaining_validators_number <= 5:
+            recall_number = 5 - remaining_validators_number
+
+            if recall_number > len(self.blacklist):
+                self.blacklist = []
+            else:
+                self.blacklist = self.blacklist[recall_number:]
+
+    def check_blacklist(self, uid: int) -> bool:
+        for val in self.blacklist:
+            if val.get('uid') == uid:
+                return True
+
+        return False
+
+
+    def get_next_validator_to_query(self) -> int | None:
+        self.clear_blacklist()
+
+        bt.logging.info(f"Blacklisted uids: {self.blacklist}")
         current_time = int(time.time())
         metagraph: bt.metagraph = self._metagraph_ref()
 
@@ -44,12 +71,13 @@ class ValidatorSelector:
                 metagraph.axons[self._next_uid].is_serving
                 and metagraph.S[self._next_uid] >= self._min_stake
                 and self._cooldowns.get(self._next_uid, 0) < current_time
-                and self._next_uid not in blacklist_uids
+                and self.check_blacklist(self._next_uid)
             ):
                 bt.logging.debug(f"Querying task from [{self._next_uid}]. Stake: {metagraph.S[self._next_uid]}")
                 return self._next_uid
 
             self._next_uid = 0 if self._next_uid + 1 == metagraph.n else self._next_uid + 1
+            self.all_validators.add(self._next_uid)
             if start_uid == self._next_uid:
                 bt.logging.info("No available validators to pull the task.")
                 return None
