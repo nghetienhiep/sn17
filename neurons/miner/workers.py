@@ -37,7 +37,7 @@ async def _complete_one_task(
         if time.time() - BLACKLIST_VALIDATORS[val_uid] >= 3600:
             del BLACKLIST_VALIDATORS[val_uid]
 
-    validator_uid = validator_selector.get_next_validator_to_query(BLACKLIST_VALIDATORS.keys())
+    validator_uid = validator_selector.get_next_validator_to_query(list(BLACKLIST_VALIDATORS.keys()))
     if validator_uid is None:
         await asyncio.sleep(10.0)
         return
