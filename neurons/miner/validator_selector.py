@@ -70,15 +70,13 @@ class ValidatorSelector:
 
         start_uid = self._next_uid
         while True:
-            if metagraph.axons[self._next_uid].is_serving and metagraph.S[self._next_uid] >= self._min_stake:
+            if metagraph.S[self._next_uid] >= self._min_stake:
                 self.all_validators.add(self._next_uid)
 
             if (
                 metagraph.axons[self._next_uid].is_serving
                 and metagraph.S[self._next_uid] >= self._min_stake
                 and self._cooldowns.get(self._next_uid, 0) < current_time
-                # and not self.check_blacklist(self._next_uid)
-                and self._next_uid in self.whitelist
             ):
                 bt.logging.debug(f"Querying task from [{self._next_uid}]. Stake: {metagraph.S[self._next_uid]}")
                 return self._next_uid
